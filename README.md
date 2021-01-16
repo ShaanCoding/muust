@@ -13,7 +13,7 @@
     <a href="https://github.com/ShaanCoding/Muust"><strong>Explore the docs »</strong></a>
     <br/>
     <br/>
-    <a href="https://must.shaankhan.dev">View Demo</a>
+    <a href="https://muust.shaankhan.dev/">View Demo</a>
     .
     <a href="https://github.com/ShaanCoding/Muust/issues">Report Bug</a>
     .

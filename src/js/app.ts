@@ -1,167 +1,128 @@
-//First thing we do is select our elements
-const clear = document.getElementsByClassName("clear");
+// Select the Elements
+const clear = document.querySelector(".clear");
 const dateElement = document.getElementById("date");
 const list = document.getElementById("list");
 const input = document.getElementById("input");
 
-// //InsertAdjacentHTML
-
-// /*
-//     We need a method to add new items to our list, and keep the old ones
-//     The solution is to make an insertAjacentHTML
-// */
-
-// const element = document.getElementById("element");
-
-// //position: beforebegin, afterbegin, beforeend, afterend
-// //text: something
-// element?.insertAdjacentHTML()
-
-const list = document.getElementById("list");
-
+// Classes names
 const CHECK = "fa-check-circle";
 const UNCHECK = "fa-circle-thin";
 const LINE_THROUGH = "lineThrough";
 
+// Variables
+let LIST, id;
 
-let LIST = [];
-let id = 0;
-
-// Now we need to save the todo list to local storage, localStorage.setItem("key", 'value')
-
-let variable = localStorage.getItem('key');
-
-localStorage.setItem("TODO", JSON.stringify(LIST));
-
-// If this list already exists then we restore it otherwise we resume normally
-
+// get item from localstorage
 let data = localStorage.getItem("TODO");
 
-let loadToDo = function(array) {
-    array.array.forEach(element => {
-        addToDo(element.name, element.id, element.done, element.trash)
-    });
-}
-
-if(data) {
+// check if data is not empty
+if(data){
     LIST = JSON.parse(data);
-    loadToDo(LIST);
     id = LIST.length;
+    loadList(LIST);
 }
-else {
+else{
+    // if data isn't empty
     LIST = [];
     id = 0;
 }
 
-// Now we additionally want a clear function from our const clear so we make a new event listener
+// load items to the user's interface
+let loadList = function(array) {
+    array.array.forEach(item => {
+        addToDo(item.name, item.id, item.done, item.trash);
+    });
+}
 
-clear.addEventListener('click', function() {
+// clear the local storage
+clear.addEventListener("click", function(){
     localStorage.clear();
     location.reload();
 });
 
-// Now we show todays date
+// Show todays date
+const options = {weekday : "long", month:"short", day:"numeric"};
+const today = new Date();
 
-let today = new Date();
-let options = {weekday:'long', month:'short', day:'numeric'};
+dateElement.innerHTML = today.toLocaleDateString("en-US", options);
 
-dateElement?.innerHTML = today.toLocaleDateString("en-US", options);
+// add to do function
 
-let addToDo = function(toDo, id, done, trash) {
-
-    //For finished checked items they have an a different button class
-    //Additionally for checked items they have a line through them, so we add a line class
-
-    //Check if the item is trash, if it isn't trashed we don't need to run code
+function addToDo(toDo, id, done, trash){
+    
     if(trash) {
         return;
     }
-
-    //Check if item is done and if done we use linethrough classname
+    
     const DONE = done ? CHECK : UNCHECK;
     const LINE = done ? LINE_THROUGH : "";
-
-    const text =
-    `<li class="item">
-    <i class="fa ${DONE}" job="complete" id=${id}></i>
-    <p class="text ${LINE}">${toDo}</p>
-    <i class="fa fa-trash-o delete" job="delete" id=${id}></i>
-    </li>`;
+    
+    const item = `<li class="item">
+                    <i class="fa ${DONE} co" job="complete" id="${id}"></i>
+                    <p class="text ${LINE}">${toDo}</p>
+                    <i class="fa fa-trash-o de" job="delete" id="${id}"></i>
+                  </li>
+                `;
     
     const position = "beforeend";
     
-    list?.insertAdjacentHTML(position, text);
-
+    list.insertAdjacentHTML(position, item);
 }
 
-
-
-//Now when enter is pressed we want to add it, time to add an event listener
-//When enter is pressed and it isn't empty we add it to the list and then empty the input
-document.addEventListener("keyup", function(e) => {
-    if(e.keyCode == 13) {
-        const toDo = input?.textContent;
-
-        if(toDo) {
+// add an item to the list user the enter key
+document.addEventListener("keyup", function(even) {
+    if(event.keyCode == 13){
+        const toDo = input.value;
+        
+        // if the input isn't empty
+        if(toDo){
             addToDo(toDo, id, false, false);
-
-            //We need a list datastructure with name, id, done and trashed
-            LIST.push(
-                {
-                    name: toDo,
-                    id: id,
-                    done: false,
-                    trash: false
-                }
-            );
-
-            input?.textContent = "";
+            
+            LIST.push({
+                name : toDo,
+                id : id,
+                done : false,
+                trash : false
+            });
+            
+            // add item to localstorage ( this code must be added where the LIST array is updated)
+            localStorage.setItem("TODO", JSON.stringify(LIST));
+            
             id++;
         }
+        input.value = "";
     }
 });
 
-//Now if a user clicks on the fa-circle thin button we need to remove the circl-ethin class and add the checked one and add the underline
-//Additioanlly we need a case to undo the todo as well fa-check needs to remove the class and add the fa-circle thin
 
-//We need to select the element, and use classlist, if class exists we remove, otherwise if it doesn't exist we need to add it
-//We need to use the .toggle(CLASS) method
-
+// complete to do
 let completeToDo = function(element) {
-    //Updates button
     element.classList.toggle(CHECK);
     element.classList.toggle(UNCHECK);
-
-    //Now we need to do the linethrough
-    //Got to go to the parent element and find the text
     element.parentNode.querySelector(".text").classList.toggle(LINE_THROUGH);
-
-    //Now we need to knwo the id of what element we're dealing with
+    
     LIST[element.id].done = LIST[element.id].done ? false : true;
 }
 
-//Now time to remove a todo (deleting)
-
+// remove to do
 let removeToDo = function(element) {
-    //We need to remove the entire element, so therefore the parent node element.parentNode.parentNode.removeCHild and remove everything there
-
     element.parentNode.parentNode.removeChild(element.parentNode);
-
+    
     LIST[element.id].trash = true;
 }
 
-// Now we need to target an element created dynamically, the best case is to select the list element and add an event listener for each one
+// target the items created dynamically
 
-list?.addEventListener("click", function(event) {
-    // event.target; //<i class="de fa fa-trash-o" job="delete" id="0">
-
-    let element = event.target;
-    const elementJob = event.target.attributes.job.value;
-
-    if(elementJob == "complete") {
+list.addEventListener("click", function(event) {
+    const element = event.target; // return the clicked element inside list
+    const elementJob = element.attributes.job.value; // complete or delete
+    
+    if(elementJob == "complete"){
         completeToDo(element);
-    }
-    else if(elementJob == "delete") {
+    }else if(elementJob == "delete"){
         removeToDo(element);
     }
+    
+    // add item to localstorage ( this code must be added where the LIST array is updated)
+    localStorage.setItem("TODO", JSON.stringify(LIST));
 });
